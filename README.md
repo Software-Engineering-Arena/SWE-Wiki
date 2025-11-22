@@ -1,10 +1,10 @@
 ---
 title: SWE-Wiki
 emoji: 📙
-colorFrom: gray
-colorTo: yellow
+colorFrom: blue
+colorTo: purple
 sdk: gradio
-sdk_version: 5.49.1
+sdk_version: 6.0.0
 app_file: app.py
 hf_oauth: true
 pinned: false
