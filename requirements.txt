@@ -1,0 +1,10 @@
+APScheduler
+backoff
+duckdb[all]
+gradio
+gradio_leaderboard
+huggingface_hub
+pandas
+plotly
+python-dotenv
+requests

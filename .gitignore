@@ -1,0 +1,6 @@
+*.claude
+*.env
+*.venv
+*.ipynb
+*.pyc
+*.duckdb
