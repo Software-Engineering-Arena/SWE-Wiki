@@ -21,13 +21,13 @@ load_dotenv()
 # CONFIGURATION
 # =============================================================================
 
-AGENTS_REPO = "SWE-Arena/bot_metadata"  # HuggingFace dataset for agent metadata
+AGENTS_REPO = "SWE-Arena/bot_metadata"  # HuggingFace dataset for assistant metadata
 LEADERBOARD_FILENAME = f"{os.getenv('COMPOSE_PROJECT_NAME')}.json"
 LEADERBOARD_REPO = "SWE-Arena/leaderboard_data"  # HuggingFace dataset for leaderboard data
 MAX_RETRIES = 5
 
 LEADERBOARD_COLUMNS = [
-    ("Agent", "string"),
+    ("Assistant", "string"),
     ("Website", "string"),
     ("Total Wiki Edits", "number"),
 ]
@@ -93,10 +93,10 @@ def validate_github_username(identifier):
 # =============================================================================
 
 def load_agents_from_hf():
-    """Load all agent metadata JSON files from HuggingFace dataset."""
+    """Load all assistant metadata JSON files from HuggingFace dataset."""
     try:
         api = HfApi()
-        agents = []
+        assistants = []
 
         # List all files in the repository
         files = list_repo_files_with_backoff(api=api, repo_id=AGENTS_REPO, repo_type="dataset")
@@ -116,27 +116,27 @@ def load_agents_from_hf():
                 with open(file_path, 'r') as f:
                     agent_data = json.load(f)
 
-                    # Only process agents with status == "active"
+                    # Only process assistants with status == "active"
                     if agent_data.get('status') != 'active':
                         continue
 
-                    # Extract github_identifier from filename (e.g., "agent[bot].json" -> "agent[bot]")
+                    # Extract github_identifier from filename (e.g., "assistant[bot].json" -> "assistant[bot]")
                     filename_identifier = json_file.replace('.json', '')
 
                     # Add or override github_identifier to match filename
                     agent_data['github_identifier'] = filename_identifier
 
-                    agents.append(agent_data)
+                    assistants.append(agent_data)
 
             except Exception as e:
                 print(f"Warning: Could not load {json_file}: {str(e)}")
                 continue
 
-        print(f"Loaded {len(agents)} agents from HuggingFace")
-        return agents
+        print(f"Loaded {len(assistants)} assistants from HuggingFace")
+        return assistants
 
     except Exception as e:
-        print(f"Could not load agents from HuggingFace: {str(e)}")
+        print(f"Could not load assistants from HuggingFace: {str(e)}")
         return None
 
 
@@ -192,7 +192,7 @@ def upload_with_retry(api, path_or_fileobj, path_in_repo, repo_id, repo_type, to
 
 
 def save_agent_to_hf(data):
-    """Save a new agent to HuggingFace dataset as {identifier}.json in root."""
+    """Save a new assistant to HuggingFace dataset as {identifier}.json in root."""
     try:
         api = HfApi()
         token = get_hf_token()
@@ -217,7 +217,7 @@ def save_agent_to_hf(data):
                 repo_type="dataset",
                 token=token
             )
-            print(f"Saved agent to HuggingFace: {filename}")
+            print(f"Saved assistant to HuggingFace: {filename}")
             return True
         finally:
             # Always clean up local file, even if upload fails
@@ -225,7 +225,7 @@ def save_agent_to_hf(data):
                 os.remove(filename)
 
     except Exception as e:
-        print(f"Error saving agent: {str(e)}")
+        print(f"Error saving assistant: {str(e)}")
         return False
 
 
@@ -271,7 +271,7 @@ def create_monthly_metrics_plot(top_n=5):
     Create a Plotly figure showing monthly wiki edits as bar charts.
 
     Args:
-        top_n: Number of top agents to show (default: 5)
+        top_n: Number of top assistants to show (default: 5)
     """
     # Load from saved dataset
     saved_data = load_leaderboard_data_from_hf()
@@ -296,10 +296,10 @@ def create_monthly_metrics_plot(top_n=5):
     print(f"Loaded monthly metrics from saved dataset")
 
     # Apply top_n filter if specified
-    if top_n is not None and top_n > 0 and metrics.get('agents'):
-        # Calculate wiki edits for each agent
+    if top_n is not None and top_n > 0 and metrics.get('assistants'):
+        # Calculate wiki edits for each assistant
         agent_totals = []
-        for agent_name in metrics['agents']:
+        for agent_name in metrics['assistants']:
             agent_data = metrics['data'].get(agent_name, {})
             wiki_edits = sum(agent_data.get('total_wiki_edits', []))
             agent_totals.append((agent_name, wiki_edits))
@@ -308,14 +308,14 @@ def create_monthly_metrics_plot(top_n=5):
         agent_totals.sort(key=lambda x: x[1], reverse=True)
         top_agents = [agent_name for agent_name, _ in agent_totals[:top_n]]
 
-        # Filter metrics to only include top agents
+        # Filter metrics to only include top assistants
         metrics = {
-            'agents': top_agents,
+            'assistants': top_agents,
             'months': metrics['months'],
-            'data': {agent: metrics['data'][agent] for agent in top_agents if agent in metrics['data']}
+            'data': {assistant: metrics['data'][assistant] for assistant in top_agents if assistant in metrics['data']}
         }
 
-    if not metrics['agents'] or not metrics['months']:
+    if not metrics['assistants'] or not metrics['months']:
         # Return an empty figure with a message
         fig = go.Figure()
         fig.add_annotation(
@@ -334,7 +334,7 @@ def create_monthly_metrics_plot(top_n=5):
     # Create figure
     fig = go.Figure()
 
-    # Generate unique colors for many agents using HSL color space
+    # Generate unique colors for many assistants using HSL color space
     def generate_color(index, total):
         """Generate distinct colors using HSL color space for better distribution"""
         hue = (index * 360 / total) % 360
@@ -342,20 +342,20 @@ def create_monthly_metrics_plot(top_n=5):
         lightness = 45 + (index % 2) * 10   # Vary lightness slightly
         return f'hsl({hue}, {saturation}%, {lightness}%)'
 
-    agents = metrics['agents']
+    assistants = metrics['assistants']
     months = metrics['months']
     data = metrics['data']
 
-    # Generate colors for all agents
-    agent_colors = {agent: generate_color(idx, len(agents)) for idx, agent in enumerate(agents)}
+    # Generate colors for all assistants
+    agent_colors = {assistant: generate_color(idx, len(assistants)) for idx, assistant in enumerate(assistants)}
 
-    # Add bar traces for each agent
-    for idx, agent_name in enumerate(agents):
+    # Add bar traces for each assistant
+    for idx, agent_name in enumerate(assistants):
         color = agent_colors[agent_name]
         agent_data = data[agent_name]
 
         # Add bar trace for total wiki edits
-        # Only show bars for months where agent has wiki edits
+        # Only show bars for months where assistant has wiki edits
         x_bars = []
         y_bars = []
         for month, count in zip(months, agent_data['total_wiki_edits']):
@@ -370,11 +370,11 @@ def create_monthly_metrics_plot(top_n=5):
                     y=y_bars,
                     name=agent_name,
                     marker=dict(color=color, opacity=0.7),
-                    hovertemplate='<b>Agent: %{fullData.name}</b><br>' +
+                    hovertemplate='<b>Assistant: %{fullData.name}</b><br>' +
                                  'Month: %{x}<br>' +
                                  'Wiki Edits: %{y}<br>' +
                                  '<extra></extra>',
-                    offsetgroup=agent_name  # Group bars by agent for proper spacing
+                    offsetgroup=agent_name  # Group bars by assistant for proper spacing
                 )
             )
 
@@ -386,7 +386,7 @@ def create_monthly_metrics_plot(top_n=5):
     show_legend = (top_n is not None and top_n <= 10)
     fig.update_layout(
         title=None,
-        hovermode='closest',  # Show individual agent info on hover
+        hovermode='closest',  # Show individual assistant info on hover
         barmode='group',
         height=600,
         showlegend=show_legend,
@@ -425,9 +425,9 @@ def get_leaderboard_dataframe():
     filtered_count = 0
     for identifier, data in cache_dict.items():
         wiki_edits = data.get('total_wiki_edits', 0)
-        print(f"   Agent '{identifier}': {wiki_edits} wiki edits")
+        print(f"   Assistant '{identifier}': {wiki_edits} wiki edits")
 
-        # Filter out agents with zero wiki edits
+        # Filter out assistants with zero wiki edits
         if wiki_edits == 0:
             filtered_count += 1
             continue
@@ -439,8 +439,8 @@ def get_leaderboard_dataframe():
             wiki_edits,
         ])
 
-    print(f"Filtered out {filtered_count} agents with 0 wiki edits")
-    print(f"Leaderboard will show {len(rows)} agents")
+    print(f"Filtered out {filtered_count} assistants with 0 wiki edits")
+    print(f"Leaderboard will show {len(rows)} assistants")
 
     # Create DataFrame
     column_names = [col[0] for col in LEADERBOARD_COLUMNS]
@@ -464,14 +464,14 @@ def get_leaderboard_dataframe():
 
 def submit_agent(identifier, agent_name, organization, website):
     """
-    Submit a new agent to the leaderboard.
+    Submit a new assistant to the leaderboard.
     Validates input and saves submission.
     """
     # Validate required fields
     if not identifier or not identifier.strip():
         return "ERROR: GitHub identifier is required", gr.update()
     if not agent_name or not agent_name.strip():
-        return "ERROR: Agent name is required", gr.update()
+        return "ERROR: Assistant name is required", gr.update()
     if not organization or not organization.strip():
         return "ERROR: Organization name is required", gr.update()
     if not website or not website.strip():
@@ -488,12 +488,12 @@ def submit_agent(identifier, agent_name, organization, website):
     if not is_valid:
         return f"ERROR: {message}", gr.update()
 
-    # Check for duplicates by loading agents from HuggingFace
-    agents = load_agents_from_hf()
-    if agents:
-        existing_names = {agent['github_identifier'] for agent in agents}
+    # Check for duplicates by loading assistants from HuggingFace
+    assistants = load_agents_from_hf()
+    if assistants:
+        existing_names = {assistant['github_identifier'] for assistant in assistants}
         if identifier in existing_names:
-            return f"WARNING: Agent with identifier '{identifier}' already exists", gr.update()
+            return f"WARNING: Assistant with identifier '{identifier}' already exists", gr.update()
 
     # Create submission
     submission = {
@@ -543,7 +543,7 @@ def reload_leaderboard_data():
 # GRADIO APPLICATION
 # =============================================================================
 
-print(f"\nStarting SWE Agent Wiki Leaderboard")
+print(f"\nStarting SWE Assistant Wiki Leaderboard")
 print(f"   Data source: {LEADERBOARD_REPO}")
 print(f"   Reload frequency: Daily at 12:00 AM UTC\n")
 
@@ -564,19 +564,19 @@ print(f"On startup: Loads cached data from HuggingFace on demand")
 print(f"{'='*80}\n")
 
 # Create Gradio interface
-with gr.Blocks(title="SWE Agent Wiki Leaderboard", theme=gr.themes.Soft()) as app:
-    gr.Markdown("# SWE Agent Wiki Leaderboard")
-    gr.Markdown(f"Track and compare wiki edits made by SWE agents")
+with gr.Blocks(title="SWE Assistant Wiki Leaderboard", theme=gr.themes.Soft()) as app:
+    gr.Markdown("# SWE Assistant Wiki Leaderboard")
+    gr.Markdown(f"Track and compare wiki edits made by SWE assistants")
 
     with gr.Tabs():
 
         # Leaderboard Tab
         with gr.Tab("Leaderboard"):
-            gr.Markdown("*Statistics are based on wiki edits made by agents*")
+            gr.Markdown("*Statistics are based on wiki edits made by assistants*")
             leaderboard_table = Leaderboard(
                 value=pd.DataFrame(columns=[col[0] for col in LEADERBOARD_COLUMNS]),  # Empty initially
                 datatype=LEADERBOARD_COLUMNS,
-                search_columns=["Agent", "Website"],
+                search_columns=["Assistant", "Website"],
                 filter_columns=[]
             )
 
@@ -591,7 +591,7 @@ with gr.Blocks(title="SWE Agent Wiki Leaderboard", theme=gr.themes.Soft()) as ap
             gr.Markdown("---")  # Divider
             with gr.Group():
                 gr.Markdown("### Monthly Performance - Top 5 Agents")
-                gr.Markdown("*Shows wiki edits for the most active agents*")
+                gr.Markdown("*Shows wiki edits for the most active assistants*")
                 monthly_metrics_plot = gr.Plot(label="Monthly Metrics")
 
             # Load monthly metrics when app starts
@@ -602,20 +602,20 @@ with gr.Blocks(title="SWE Agent Wiki Leaderboard", theme=gr.themes.Soft()) as ap
             )
 
 
-        # Submit Agent Tab
-        with gr.Tab("Submit Agent"):
+        # Submit Assistant Tab
+        with gr.Tab("Submit Assistant"):
 
-            gr.Markdown("Fill in the details below to add your agent to the leaderboard.")
+            gr.Markdown("Fill in the details below to add your assistant to the leaderboard.")
 
             with gr.Row():
                 with gr.Column():
                     github_input = gr.Textbox(
                         label="GitHub Identifier*",
-                        placeholder="Your agent username (e.g., my-agent[bot])"
+                        placeholder="Your assistant username (e.g., my-assistant[bot])"
                     )
                     name_input = gr.Textbox(
-                        label="Agent Name*",
-                        placeholder="Your agent's display name"
+                        label="Assistant Name*",
+                        placeholder="Your assistant's display name"
                     )
 
                 with gr.Column():
@@ -625,11 +625,11 @@ with gr.Blocks(title="SWE Agent Wiki Leaderboard", theme=gr.themes.Soft()) as ap
                     )
                     website_input = gr.Textbox(
                         label="Website*",
-                        placeholder="https://your-agent-website.com"
+                        placeholder="https://your-assistant-website.com"
                     )
 
             submit_button = gr.Button(
-                "Submit Agent",
+                "Submit Assistant",
                 variant="primary"
             )
             submission_status = gr.Textbox(

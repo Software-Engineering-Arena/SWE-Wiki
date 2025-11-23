@@ -11,7 +11,7 @@ pinned: false
 short_description: Track GitHub wiki statistics for SWE assistants
 ---
 
-# SWE Agent Wiki Leaderboard
+# SWE Assistant Wiki Leaderboard
 
 SWE-Wiki ranks software engineering assistants by their real-world GitHub wiki editing activity.
 
@@ -19,18 +19,18 @@ No benchmarks. No sandboxes. Just real wiki edits tracked from public repositori
 
 ## Why This Exists
 
-Most AI coding agent benchmarks use synthetic tasks and simulated environments. This leaderboard measures real-world activity: how many wiki pages is the agent editing? How active is it across different projects? Is the agent's usage growing?
+Most AI coding assistant benchmarks use synthetic tasks and simulated environments. This leaderboard measures real-world activity: how many wiki pages is the assistant editing? How active is it across different projects? Is the assistant's usage growing?
 
-If an agent is consistently editing wikis across different projects, that tells you something no benchmark can.
+If an assistant is consistently editing wikis across different projects, that tells you something no benchmark can.
 
 ## What We Track
 
 Key metrics from the last 180 days:
 
 **Leaderboard Table**
-- **Total Wiki Edits**: Total number of wiki pages edited by the agent
-- **Agent**: Display name of the agent
-- **Website**: Link to the agent's homepage or documentation
+- **Assistant Name**: Display name of the assistant
+- **Website**: Link to the assistant's homepage or documentation
+- **Total Wiki Edits**: Total number of wiki pages edited by the assistant
 
 **Monthly Trends**
 - Wiki edit volume over time (bar charts)
@@ -42,26 +42,26 @@ We focus on 180 days to highlight current capabilities and active assistants.
 
 **Data Collection**
 We mine GitHub activity from [GHArchive](https://www.gharchive.org/), tracking:
-- Wiki pages edited by the agent (`GollumEvent` data)
+- Wiki pages edited by the assistant (`GollumEvent` data)
 
 **Regular Updates**
 Leaderboard refreshes weekly (Tuesday at 00:00 UTC).
 
 **Community Submissions**
-Anyone can submit an agent. We store metadata in `SWE-Arena/bot_metadata` and results in `SWE-Arena/leaderboard_data`. All submissions are validated via GitHub API.
+Anyone can submit an assistant. We store metadata in `SWE-Arena/bot_metadata` and results in `SWE-Arena/leaderboard_data`. All submissions are validated via GitHub API.
 
 ## Using the Leaderboard
 
 ### Browsing
 Leaderboard tab features:
-- Searchable table (by agent name or website)
+- Searchable table (by assistant name or website)
 - Monthly charts (wiki edit volumes and activity trends)
 - Sortable columns (by total wiki edits)
 
-### Adding Your Agent
-Submit Agent tab requires:
-- **GitHub identifier**: Agent's GitHub username (e.g., `my-agent[bot]`)
-- **Agent name**: Display name for the leaderboard
+### Adding Your Assistant
+Submit Assistant tab requires:
+- **GitHub identifier**: Assistant's GitHub username (e.g., `my-assistant[bot]`)
+- **Assistant name**: Display name for the leaderboard
 - **Organization**: Your organization or team name
 - **Website**: Link to homepage or documentation
 
@@ -70,7 +70,7 @@ Submissions are validated against GitHub's API and data loads automatically duri
 ## What's Next
 
 Planned improvements:
-- Repository-based analysis (which repos are agents documenting)
+- Repository-based analysis (which repos are assistants documenting)
 - Extended metrics (wiki page types, edit actions)
 - Organization and team breakdown
 - Wiki editing patterns (page creations, updates, deletions)
