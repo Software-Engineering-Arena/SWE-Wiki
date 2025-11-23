@@ -29,7 +29,7 @@ Key metrics from the last 180 days:
 
 **Leaderboard Table**
 - **Total Wiki Edits**: Total number of wiki pages edited by the agent
-- **Agent Name**: Display name of the agent
+- **Agent**: Display name of the agent
 - **Website**: Link to the agent's homepage or documentation
 
 **Monthly Trends**
