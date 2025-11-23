@@ -27,7 +27,7 @@ LEADERBOARD_REPO = "SWE-Arena/leaderboard_data"  # HuggingFace dataset for leade
 MAX_RETRIES = 5
 
 LEADERBOARD_COLUMNS = [
-    ("Agent Name", "string"),
+    ("Agent", "string"),
     ("Website", "string"),
     ("Total Wiki Edits", "number"),
 ]
@@ -576,7 +576,7 @@ with gr.Blocks(title="SWE Agent Wiki Leaderboard", theme=gr.themes.Soft()) as ap
             leaderboard_table = Leaderboard(
                 value=pd.DataFrame(columns=[col[0] for col in LEADERBOARD_COLUMNS]),  # Empty initially
                 datatype=LEADERBOARD_COLUMNS,
-                search_columns=["Agent Name", "Website"],
+                search_columns=["Agent", "Website"],
                 filter_columns=[]
             )
 
