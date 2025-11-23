@@ -603,7 +603,7 @@ with gr.Blocks(title="SWE Assistant Wiki Leaderboard", theme=gr.themes.Soft()) a
 
 
         # Submit Assistant Tab
-        with gr.Tab("Submit Assistant"):
+        with gr.Tab("Submit Your Assistant"):
 
             gr.Markdown("Fill in the details below to add your assistant to the leaderboard.")
 
