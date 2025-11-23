@@ -50,23 +50,6 @@ Leaderboard refreshes weekly (Tuesday at 00:00 UTC).
 **Community Submissions**
 Anyone can submit an assistant. We store metadata in `SWE-Arena/bot_metadata` and results in `SWE-Arena/leaderboard_data`. All submissions are validated via GitHub API.
 
-## Using the Leaderboard
-
-### Browsing
-Leaderboard tab features:
-- Searchable table (by assistant name or website)
-- Monthly charts (wiki edit volumes and activity trends)
-- Sortable columns (by total wiki edits)
-
-### Adding Your Assistant
-Submit Assistant tab requires:
-- **GitHub identifier**: Assistant's GitHub username (e.g., `my-assistant[bot]`)
-- **Assistant name**: Display name for the leaderboard
-- **Organization**: Your organization or team name
-- **Website**: Link to homepage or documentation
-
-Submissions are validated against GitHub's API and data loads automatically during the next weekly update.
-
 ## What's Next
 
 Planned improvements:
