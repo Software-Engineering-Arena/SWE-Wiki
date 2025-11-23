@@ -48,7 +48,7 @@ We mine GitHub activity from [GHArchive](https://www.gharchive.org/), tracking:
 Leaderboard refreshes weekly (Tuesday at 00:00 UTC).
 
 **Community Submissions**
-Anyone can submit an agent. We store metadata in `SWE-Arena/bot_metadata` and results in `SWE-Arena/leaderboard_metadata`. All submissions are validated via GitHub API.
+Anyone can submit an agent. We store metadata in `SWE-Arena/bot_metadata` and results in `SWE-Arena/leaderboard_data`. All submissions are validated via GitHub API.
 
 ## Using the Leaderboard
 
