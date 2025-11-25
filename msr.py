@@ -37,8 +37,8 @@ LEADERBOARD_TIME_FRAME_DAYS = 180
 GIT_SYNC_TIMEOUT = 300  # 5 minutes timeout for git pull
 
 # OPTIMIZED DUCKDB CONFIGURATION
-DUCKDB_THREADS = 8
-DUCKDB_MEMORY_LIMIT = "64GB"
+DUCKDB_THREADS = 16
+DUCKDB_MEMORY_LIMIT = "128GB"
 
 # Streaming batch configuration
 BATCH_SIZE_DAYS = 7  # Process 1 week at a time (~168 hourly files)
@@ -54,7 +54,7 @@ UPLOAD_DELAY_SECONDS = 5
 UPLOAD_MAX_BACKOFF = 3600
 
 # Scheduler configuration
-SCHEDULE_ENABLED = True
+SCHEDULE_ENABLED = False
 SCHEDULE_DAY_OF_WEEK = 'tue'  # Tuesday
 SCHEDULE_HOUR = 0
 SCHEDULE_MINUTE = 0
@@ -736,7 +736,6 @@ def mine_all_agents():
         all_metadata = fetch_all_wiki_metadata_streaming(
             conn, identifiers, start_date, end_date
         )
-
     except Exception as e:
         print(f"Error during DuckDB fetch: {str(e)}")
         traceback.print_exc()
@@ -750,10 +749,17 @@ def mine_all_agents():
         leaderboard_dict = construct_leaderboard_from_metadata(all_metadata, assistants)
         monthly_metrics = calculate_monthly_metrics_by_agent(all_metadata, assistants)
         save_leaderboard_data_to_hf(leaderboard_dict, monthly_metrics)
-
     except Exception as e:
         print(f"Error saving leaderboard: {str(e)}")
         traceback.print_exc()
+    finally:
+        # Clean up DuckDB cache file to save storage
+        if os.path.exists(DUCKDB_CACHE_FILE):
+            try:
+                os.remove(DUCKDB_CACHE_FILE)
+                print(f"   ✓ Cache file removed: {DUCKDB_CACHE_FILE}")
+            except Exception as e:
+                print(f"   ⚠ Failed to remove cache file: {str(e)}")
 
 
 # =============================================================================
