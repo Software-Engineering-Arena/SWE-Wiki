@@ -42,7 +42,7 @@ GIT_SYNC_TIMEOUT = 300  # 5 minutes timeout for git pull
 
 # OPTIMIZED DUCKDB CONFIGURATION
 DUCKDB_THREADS = 16
-DUCKDB_MEMORY_LIMIT = "128GB"
+DUCKDB_MEMORY_LIMIT = "64GB"
 
 # Streaming batch configuration
 BATCH_SIZE_DAYS = 7  # Process 1 week at a time (~168 hourly files)
