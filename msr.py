@@ -302,14 +302,9 @@ def get_duckdb_connection():
             raise
 
     # CORE MEMORY & THREADING SETTINGS
-    conn.execute(f"SET threads TO 8;")
+    conn.execute(f"SET threads TO 4;")
     conn.execute(f"SET max_memory = '48GB';")  # Hard cap
     conn.execute("SET temp_directory = '/tmp/duckdb_temp';")
-
-    # JSON STREAMING OPTIMIZATIONS (critical for performance)
-    conn.execute("SET json.read_objects = true;")  # Enable streaming JSON objects
-    conn.execute("SET json.read_buffer_size = '64MB';")  # Increase from 256KB default for large fields
-    conn.execute("SET json.format = 'newline_delimited';")  # Skip array parsing, double throughput
 
     # GZIP PARALLEL DECOMPRESSION (only needed for .json.gz files)
     try:
@@ -321,7 +316,6 @@ def get_duckdb_connection():
 
     # PERFORMANCE OPTIMIZATIONS
     conn.execute("SET preserve_insertion_order = false;")  # Disable expensive ordering
-    conn.execute("SET default_order = 'ORDER BY NONE';")  # Skip unnecessary sorting
     conn.execute("SET enable_object_cache = true;")  # Cache repeatedly read files
 
     return conn
@@ -360,15 +354,8 @@ def generate_file_path_patterns(start_date, end_date, data_dir=GHARCHIVE_DATA_LO
 
 def fetch_all_wiki_metadata_streaming(conn, identifiers, start_date, end_date):
     """
-    OPTIMIZED: Fetch wiki metadata using streaming batch processing.
-
-    Processes GHArchive files in BATCH_SIZE_DAYS chunks to limit memory usage.
-    Instead of loading 180 days (4,344 files) at once, processes 7 days at a time.
-
-    This prevents OOM errors by:
-    1. Only keeping ~168 hourly files in memory per batch (vs 4,344)
-    2. Incrementally building the results dictionary
-    3. Allowing DuckDB to garbage collect after each batch
+    QUERY: Fetch wiki metadata using streaming batch processing:
+    - WikiEvent (for wiki edit tracking)
 
     Args:
         conn: DuckDB connection instance
