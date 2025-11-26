@@ -644,8 +644,8 @@ def construct_leaderboard_from_metadata(all_metadata_dict, assistants):
         identifier = assistant.get('github_identifier')
         agent_name = assistant.get('name', 'Unknown')
 
-        bot_metadata = all_metadata_dict.get(identifier, [])
-        stats = calculate_wiki_stats_from_metadata(bot_metadata)
+        bot_data = all_metadata_dict.get(identifier, [])
+        stats = calculate_wiki_stats_from_metadata(bot_data)
 
         cache_dict[identifier] = {
             'name': agent_name,

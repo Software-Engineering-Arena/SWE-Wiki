@@ -21,7 +21,7 @@ load_dotenv()
 # CONFIGURATION
 # =============================================================================
 
-AGENTS_REPO = "SWE-Arena/bot_metadata"  # HuggingFace dataset for assistant metadata
+AGENTS_REPO = "SWE-Arena/bot_data"  # HuggingFace dataset for assistant metadata
 LEADERBOARD_FILENAME = f"{os.getenv('COMPOSE_PROJECT_NAME')}.json"
 LEADERBOARD_REPO = "SWE-Arena/leaderboard_data"  # HuggingFace dataset for leaderboard data
 MAX_RETRIES = 5
