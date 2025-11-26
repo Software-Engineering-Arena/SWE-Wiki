@@ -40,13 +40,8 @@ LEADERBOARD_TIME_FRAME_DAYS = 180
 # Git sync configuration (mandatory to get latest bot data)
 GIT_SYNC_TIMEOUT = 300  # 5 minutes timeout for git pull
 
-# OPTIMIZED DUCKDB CONFIGURATION
-DUCKDB_THREADS = 16
-DUCKDB_MEMORY_LIMIT = "64GB"
-
 # Streaming batch configuration
-BATCH_SIZE_DAYS = 7  # Process 1 week at a time (~168 hourly files)
-# At this size: ~7 days × 24 files × ~100MB per file = ~16GB uncompressed per batch
+BATCH_SIZE_DAYS = 1  # Process 1 day at a time (~24 hourly files)
 
 # Download configuration
 DOWNLOAD_WORKERS = 4
@@ -306,13 +301,28 @@ def get_duckdb_connection():
             # Re-raise if it's not a locking error
             raise
 
-    # OPTIMIZED SETTINGS
-    conn.execute(f"SET threads TO {DUCKDB_THREADS};")
-    conn.execute("SET preserve_insertion_order = false;")
-    conn.execute("SET enable_object_cache = true;")
+    # CORE MEMORY & THREADING SETTINGS
+    conn.execute(f"SET threads TO 8;")
+    conn.execute(f"SET max_memory = '48GB';")  # Hard cap
     conn.execute("SET temp_directory = '/tmp/duckdb_temp';")
-    conn.execute(f"SET memory_limit = '{DUCKDB_MEMORY_LIMIT}';")  # Per-query limit
-    conn.execute(f"SET max_memory = '{DUCKDB_MEMORY_LIMIT}';")  # Hard cap
+
+    # JSON STREAMING OPTIMIZATIONS (critical for performance)
+    conn.execute("SET json.read_objects = true;")  # Enable streaming JSON objects
+    conn.execute("SET json.read_buffer_size = '64MB';")  # Increase from 256KB default for large fields
+    conn.execute("SET json.format = 'newline_delimited';")  # Skip array parsing, double throughput
+
+    # GZIP PARALLEL DECOMPRESSION (only needed for .json.gz files)
+    try:
+        conn.execute("SET extension_directory = '/tmp/duckdb_ext';")
+        conn.execute("INSTALL 'gzip';")
+        conn.execute("LOAD 'gzip';")
+    except Exception as e:
+        print(f"   ⚠ Warning: Could not load gzip extension: {e}")
+
+    # PERFORMANCE OPTIMIZATIONS
+    conn.execute("SET preserve_insertion_order = false;")  # Disable expensive ordering
+    conn.execute("SET default_order = 'ORDER BY NONE';")  # Skip unnecessary sorting
+    conn.execute("SET enable_object_cache = true;")  # Cache repeatedly read files
 
     return conn
 
