@@ -303,7 +303,7 @@ def get_duckdb_connection():
 
     # CORE MEMORY & THREADING SETTINGS
     conn.execute(f"SET threads TO 6;")
-    conn.execute(f"SET max_memory = '48GB';")  # Hard cap
+    conn.execute(f"SET max_memory = '50GB';")
     conn.execute("SET temp_directory = '/tmp/duckdb_temp';")
 
     # GZIP PARALLEL DECOMPRESSION (only needed for .json.gz files)
