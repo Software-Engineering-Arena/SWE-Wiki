@@ -3,7 +3,6 @@ import os
 import time
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from huggingface_hub import HfApi, hf_hub_download
 from huggingface_hub.errors import HfHubHTTPError
 from dotenv import load_dotenv
@@ -44,7 +43,6 @@ GIT_SYNC_TIMEOUT = 300  # 5 minutes timeout for git pull
 BATCH_SIZE_DAYS = 1  # Process 1 day at a time (~24 hourly files)
 
 # Download configuration
-DOWNLOAD_WORKERS = 4
 DOWNLOAD_RETRY_DELAY = 2
 MAX_RETRIES = 5
 
@@ -175,21 +173,8 @@ def download_all_gharchive_data():
             urls.append(url)
         current_date += timedelta(days=1)
 
-    downloads_processed = 0
-
-    try:
-        with ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as executor:
-            futures = [executor.submit(download_file, url) for url in urls]
-            for future in as_completed(futures):
-                downloads_processed += 1
-
-        print(f"   Download complete: {downloads_processed} files")
-        return True
-
-    except Exception as e:
-        print(f"Error during download: {str(e)}")
-        traceback.print_exc()
-        return False
+    for url in urls:
+        download_file(url)
 
 
 # =============================================================================
