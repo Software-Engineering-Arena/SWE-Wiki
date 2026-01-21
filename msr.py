@@ -42,8 +42,7 @@ GIT_SYNC_TIMEOUT = 300  # 5 minutes timeout for git pull
 # Streaming batch configuration
 BATCH_SIZE_DAYS = 1  # Process 1 day at a time (~24 hourly files)
 
-# Download configuration
-DOWNLOAD_RETRY_DELAY = 2
+# Retry configuration
 MAX_RETRIES = 5
 
 # Upload configuration
@@ -128,33 +127,15 @@ def download_file(url):
     if os.path.exists(filepath):
         return True
 
-    for attempt in range(MAX_RETRIES):
-        try:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            with open(filepath, "wb") as f:
-                f.write(response.content)
-            return True
-
-        except requests.exceptions.HTTPError as e:
-            # 404 means the file doesn't exist in GHArchive - skip without retry
-            if e.response.status_code == 404:
-                if attempt == 0:  # Only log once, not for each retry
-                    print(f"   ○ {filename}: Not available (404) - skipping")
-                return False
-
-            # Other HTTP errors (5xx, etc.) should be retried
-            wait_time = DOWNLOAD_RETRY_DELAY * (2 ** attempt)
-            print(f"   ○ {filename}: {e}, retrying in {wait_time}s (attempt {attempt + 1}/{MAX_RETRIES})")
-            time.sleep(wait_time)
-
-        except Exception as e:
-            # Network errors, timeouts, etc. should be retried
-            wait_time = DOWNLOAD_RETRY_DELAY * (2 ** attempt)
-            print(f"   ○ {filename}: {e}, retrying in {wait_time}s (attempt {attempt + 1}/{MAX_RETRIES})")
-            time.sleep(wait_time)
-
-    return False
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+        return True
+    except Exception as e:
+        print(f"   ⚠ {filename}: {e}")
+        return False
 
 
 def download_all_gharchive_data():
