@@ -414,71 +414,10 @@ def fetch_all_wiki_metadata_streaming(conn, identifiers, start_date, end_date):
     return dict(metadata_by_agent)
 
 
-def sync_agents_repo():
-    """
-    Sync local bot_data repository with remote using git pull.
-    This is MANDATORY to ensure we have the latest bot data.
-    Raises exception if sync fails.
-    """
-    if not os.path.exists(AGENTS_REPO_LOCAL_PATH):
-        error_msg = f"Local repository not found at {AGENTS_REPO_LOCAL_PATH}"
-        print(f"   ✗ {error_msg}")
-        print(f"   Please clone it first: git clone https://huggingface.co/datasets/{AGENTS_REPO}")
-        raise FileNotFoundError(error_msg)
-
-    if not os.path.exists(os.path.join(AGENTS_REPO_LOCAL_PATH, '.git')):
-        error_msg = f"{AGENTS_REPO_LOCAL_PATH} exists but is not a git repository"
-        print(f"   ✗ {error_msg}")
-        raise ValueError(error_msg)
-
-    try:
-        # Run git pull with extended timeout due to large repository
-        result = subprocess.run(
-            ['git', 'pull'],
-            cwd=AGENTS_REPO_LOCAL_PATH,
-            capture_output=True,
-            text=True,
-            timeout=GIT_SYNC_TIMEOUT
-        )
-
-        if result.returncode == 0:
-            output = result.stdout.strip()
-            if "Already up to date" in output or "Already up-to-date" in output:
-                print(f"   ✓ Repository is up to date")
-            else:
-                print(f"   ✓ Repository synced successfully")
-                if output:
-                    # Print first few lines of output
-                    lines = output.split('\n')[:5]
-                    for line in lines:
-                        print(f"     {line}")
-            return True
-        else:
-            error_msg = f"Git pull failed: {result.stderr.strip()}"
-            print(f"   ✗ {error_msg}")
-            raise RuntimeError(error_msg)
-
-    except subprocess.TimeoutExpired:
-        error_msg = f"Git pull timed out after {GIT_SYNC_TIMEOUT} seconds"
-        print(f"   ✗ {error_msg}")
-        raise TimeoutError(error_msg)
-    except (FileNotFoundError, ValueError, RuntimeError, TimeoutError):
-        raise  # Re-raise expected exceptions
-    except Exception as e:
-        error_msg = f"Error syncing repository: {str(e)}"
-        print(f"   ✗ {error_msg}")
-        raise RuntimeError(error_msg) from e
-
-
 def load_agents_from_hf():
     """
     Load all assistant metadata JSON files from local git repository.
-    ALWAYS syncs with remote first to ensure we have the latest bot data.
     """
-    # MANDATORY: Sync with remote first to get latest bot data
-    print(f"   Syncing bot_data repository to get latest assistants...")
-    sync_agents_repo()  # Will raise exception if sync fails
-
     assistants = []
 
     # Scan local directory for JSON files
