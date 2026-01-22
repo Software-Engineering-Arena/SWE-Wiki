@@ -425,7 +425,6 @@ def get_leaderboard_dataframe():
     filtered_count = 0
     for identifier, data in cache_dict.items():
         wiki_edits = data.get('total_wiki_edits', 0)
-        print(f"   Assistant '{identifier}': {wiki_edits} wiki edits")
 
         # Filter out assistants with zero wiki edits
         if wiki_edits == 0:

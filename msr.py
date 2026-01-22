@@ -9,9 +9,6 @@ import duckdb
 import backoff
 import requests
 import requests.exceptions
-from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.cron import CronTrigger
-import logging
 import traceback
 import re
 
@@ -42,17 +39,6 @@ BATCH_SIZE_DAYS = 1  # Process 1 day at a time (~24 hourly files)
 
 # Retry configuration
 MAX_RETRIES = 5
-
-# Upload configuration
-UPLOAD_DELAY_SECONDS = 5
-UPLOAD_MAX_BACKOFF = 3600
-
-# Scheduler configuration
-SCHEDULE_ENABLED = False
-SCHEDULE_DAY_OF_WEEK = 'tue'  # Tuesday
-SCHEDULE_HOUR = 0
-SCHEDULE_MINUTE = 0
-SCHEDULE_TIMEZONE = 'UTC'
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -656,51 +642,9 @@ def mine_all_agents():
             except Exception as e:
                 print(f"   ⚠ Failed to remove cache file: {str(e)}")
 
-
-# =============================================================================
-# SCHEDULER SETUP
-# =============================================================================
-
-def setup_scheduler():
-    """Set up APScheduler to run mining jobs periodically."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-
-    logging.getLogger('httpx').setLevel(logging.WARNING)
-
-    scheduler = BlockingScheduler(timezone=SCHEDULE_TIMEZONE)
-
-    trigger = CronTrigger(
-        day_of_week=SCHEDULE_DAY_OF_WEEK,
-        hour=SCHEDULE_HOUR,
-        minute=SCHEDULE_MINUTE,
-        timezone=SCHEDULE_TIMEZONE
-    )
-
-    scheduler.add_job(
-        mine_all_agents,
-        trigger=trigger,
-        id='mine_all_agents',
-        name='Mine GHArchive data for all assistants',
-        replace_existing=True
-    )
-
-    next_run = trigger.get_next_fire_time(None, datetime.now(trigger.timezone))
-    print(f"Scheduler: Weekly on {SCHEDULE_DAY_OF_WEEK} at {SCHEDULE_HOUR:02d}:{SCHEDULE_MINUTE:02d} {SCHEDULE_TIMEZONE}")
-    print(f"Next run: {next_run}\n")
-
-    print(f"\nScheduler started")
-    scheduler.start()
-
-
 # =============================================================================
 # ENTRY POINT
 # =============================================================================
 
 if __name__ == "__main__":
-    if SCHEDULE_ENABLED:
-        setup_scheduler()
-    else:
-        mine_all_agents()
+    mine_all_agents()
