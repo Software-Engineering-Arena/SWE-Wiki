@@ -16,7 +16,7 @@ import traceback
 import re
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # =============================================================================
 # CONFIGURATION

@@ -15,7 +15,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # =============================================================================
 # CONFIGURATION
