@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from huggingface_hub import HfApi, hf_hub_download
@@ -14,7 +13,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 import logging
 import traceback
-import subprocess
 import re
 
 # Load environment variables
