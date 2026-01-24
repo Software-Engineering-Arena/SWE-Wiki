@@ -455,6 +455,15 @@ def get_leaderboard_dataframe():
     if "Total Wiki Edits" in df.columns and not df.empty:
         df = df.sort_values(by="Total Wiki Edits", ascending=False).reset_index(drop=True)
 
+    # Workaround for gradio_leaderboard bug: single-row tables don't render properly
+    # Add a placeholder row when there's only 1 record
+    if len(df) == 1:
+        placeholder_row = pd.DataFrame([[
+            "Submit yours to join!", "—", 0, 0, 0, 0.0, 0.0, 0.0, 0, 0, 0
+        ]], columns=df.columns)
+        df = pd.concat([df, placeholder_row], ignore_index=True)
+        print("Added placeholder row for single-record workaround")
+
     print(f"Final DataFrame shape: {df.shape}")
     print("="*60 + "\n")
 
