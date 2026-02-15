@@ -138,8 +138,12 @@ def download_all_gharchive_data():
             urls.append(url)
         current_date += timedelta(days=1)
 
+    success = True
     for url in urls:
-        download_file(url)
+        if not download_file(url):
+            success = False
+
+    return success
 
 
 # =============================================================================
